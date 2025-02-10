@@ -48,7 +48,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
+# asjdfhkjshdf
 ROOT_URLCONF = "new3.urls"
 
 TEMPLATES = [
