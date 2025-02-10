@@ -35,8 +35,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
-# 12313123
-# 123123123
+# 12313123333
+# 123123123333
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
