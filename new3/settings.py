@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# setting 주석주석주석주석주석주석주석주석주석주석주석
+# fjhfhfjg
 
 INSTALLED_APPS = [
     "django.contrib.auth",
