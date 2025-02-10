@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # test 123423
 # Application definition
 # han2
+# 성룡
 
 INSTALLED_APPS = [
     "django.contrib.auth",
