@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -35,8 +36,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
-# 12313123333
-# 123123123333
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
