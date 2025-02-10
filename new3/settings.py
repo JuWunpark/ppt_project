@@ -29,6 +29,7 @@ ALLOWED_HOSTS = []
 
 # test
 # test 1234
+# 1234
 # Application definition
 
 INSTALLED_APPS = [
