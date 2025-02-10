@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     "blog",
 ]  #blog 회원관리 앱 추가
 
-# 주석2주석2
-# sdfasff
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
