@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# fjhfhfjg
+# sdfasdfaff
 
 INSTALLED_APPS = [
     "django.contrib.auth",
