@@ -27,12 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# test
-# test 123423
-# Application definition
-# han2
-# 성룡
-
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -40,6 +34,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
+
+# 12313123
+# 123123123
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
