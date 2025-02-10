@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 ]
 
 # 주석2주석2
+# sdfasff
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
