@@ -101,14 +101,12 @@ class Migration(migrations.Migration):
                 (
                     "groups",
                     models.ManyToManyField(
-                        blank=True, related_name="customuser_set", to="auth.group"
                     ),
                 ),
                 (
                     "user_permissions",
                     models.ManyToManyField(
                         blank=True,
-                        related_name="customuser_permissions_set",
                         to="auth.permission",
                     ),
                 ),
