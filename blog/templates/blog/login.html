@@ -1,11 +1,54 @@
-{% extends "base.html" %}
+{#{% extends "base.html" %}#}
+{% load static %}
+{##}
+{#{% block content %}#}
+{#  <h2>로그인</h2>#}
+{##}
+{#  <form method="post">#}
+{#    {% csrf_token %}#}
+{#    {{ form.as_p }}#}
+{#    <button type="submit">로그인</button>#}
+{#  </form>#}
+{#{% endblock %}#}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+   <link rel="stylesheet" href="{% static "css/globals.css"%}">
+    <link rel="stylesheet" href="{% static "css/styleguide.css"%}" >
+    <link rel="stylesheet" href="{% static "css/style.css"%}" >
+  </head>
 
-{% block content %}
-  <h2>로그인</h2>
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">로그인</button>
-  </form>
-{% endblock %}
+  <body>
+    <div class="sign-in">
+      <div class="div">
+          <form method="post">
+            {% csrf_token %}
+                <div class="form-log-in">
+                  <div class="input-field">
+                    <div class="label">User name</div>
+                    {{ form.username }}
+                  </div>
+
+                  <div class="input-field">
+                    <div class="label">Password</div>
+                    {{ form.password }}
+                  </div>
+
+                  <div class="button-group">
+                    <div class="group">
+                      <div class="button-wrapper"><button class="button-3" type="submit">Sign in</button></div>
+                    </div>
+                  </div>
+
+                  <div class="text-link"><div class="text-link-2">Forgot password?</div></div>
+                </div>
+          </form>
+
+        <div class="overlap-group"><div class="text-wrapper-2">로그인</div></div>
+
+      </div>
+    </div>
+  </body>
+</html>

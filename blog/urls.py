@@ -13,5 +13,12 @@ urlpatterns = [
     path('password_change/', password_change, name='password_change'),
 
     path('', views.home, name='home'),
+
+    path('prompt/', views.prompt, name='prompt'),
+
+    path('export/', views.export, name='export'),
+
+    path('export/', views.export, name='export'),
+
 ]
 

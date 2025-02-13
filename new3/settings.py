@@ -85,7 +85,7 @@ WSGI_APPLICATION = "new3.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ppt_platform',  # MySQL DB 이름
+        'NAME': 'ppt_db',  # MySQL DB 이름
         'USER': 'root',          # MySQL 사용자 이름
         'PASSWORD': '1234',  # MySQL 비밀번호
         'HOST': 'localhost',     # MySQL 서버 주소
@@ -132,6 +132,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
+# STATICFILES_DIRS = [BASE_DIR / "blog/static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

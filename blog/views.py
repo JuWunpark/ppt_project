@@ -33,8 +33,8 @@ def signup(request):
 #     return render(request, 'blog/login.html', {'form': form})
 
 def user_login(request):
-    if request.user.is_authenticated:
-        return redirect('home')  # 이미 로그인한 경우 홈으로 리디렉트
+    # if request.user.is_authenticated:
+    #     return redirect('home')  # 이미 로그인한 경우 홈으로 리디렉트
 
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -75,3 +75,8 @@ def password_change(request):
 
 def home(request):
     return render(request, 'home.html')
+
+def prompt(request):
+    return render(request, 'blog/prompt.html')
+def export(request):
+    return render(request, 'blog/export.html')

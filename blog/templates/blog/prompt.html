@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+   <link rel="stylesheet" href="{% static "css/globals.css"%}">
+    <link rel="stylesheet" href="{% static "css/prompt_guide.css"%}" >
+    <link rel="stylesheet" href="{% static "css/prompt.css"%}" >
+  </head>
+  <body>
+    <div class="screen">
+      <header class="header">
+        <img class="block" src="img/block.svg" />
+        <div class="navigation-pill-list">
+          <div class="button"><button class="div">Mypage</button></div>
+        </div>
+      </header>
+      <div class="hero-newsletter">
+        <div class="text-content-title"><div class="text-wrapper">주제를 입력해주세요!</div></div>
+        <div class="form-newsletter">
+            <form method="post">
+                {% csrf_token %}
+                <div class="input-field">
+                    <div class="input"><div class="value">입력</div></div>
+                </div>
+            </form>
+
+          <div class="button"><button class="div" onclick="location.href='{% url 'export' %}'">입력</button></div>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="image"></div>
+          <div class="body">
+            <div class="text">
+              <div class="title-2">템플릿</div>
+              <div class="body-text-for">템플릿</div>
+            </div>
+            <div class="button-group">
+              <button class="button-wrapper"><button class="button-2">선택</button></button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="image-2"></div>
+          <div class="body">
+            <div class="text">
+              <div class="title-2">템플릿</div>
+              <div class="body-text-for">템플릿</div>
+            </div>
+            <div class="button-group">
+              <button class="button-wrapper"><button class="button-2">선택</button></button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="image-3"></div>
+          <div class="body">
+            <div class="text">
+              <div class="title-2">템플릿</div>
+              <div class="body-text-for">템플릿</div>
+            </div>
+            <div class="button-group">
+              <button class="button-wrapper"><button class="button-2">선택</button></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

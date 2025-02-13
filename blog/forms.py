@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import TextInput, EmailInput, NumberInput, PasswordInput
+
 from .models import CustomUser
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.forms import PasswordChangeForm #비밀번호 변경
@@ -10,7 +12,28 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ('username', 'email', 'nickname', 'password1', 'password2')
-
+        widgets = {
+            'username': TextInput(attrs={
+                'class': "sign-up input",
+                'placeholder': 'Name'
+            }),
+            'email': EmailInput(attrs={
+                'class': "sign-up input",
+                'placeholder': 'Email'
+            }),
+            'nickname': TextInput(attrs={
+                'class': "sign-up input",
+                'placeholder': 'NickName'
+            }),
+            'password1': PasswordInput(attrs={
+                'class': "sign-up input",
+                'placeholder': 'Password'
+            }),
+            'password2': PasswordInput(attrs={
+                'class': "sign-up input",
+                'placeholder': 'Password (again)'
+            })
+        }
 
     def clean_email(self): #이메일중복방지
         email = self.cleaned_data.get('email')
