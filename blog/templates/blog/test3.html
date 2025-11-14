@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{% static 'css/Home_globals.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/Home_styleguide.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/result_style.css' %}" />
+    <script src="{% static 'js/logout.js' %}" defer></script>
+    <title>PPT</title>
+    <style>
+        .slides-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .slide-thumbnail {
+            width: 200px;
+            height: auto;
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .slide-thumbnail:hover {
+            transform: scale(1.1);
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            margin: 10% auto;
+            display: block;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-result">
+        <div class="header">
+            <div class="logo-block">
+                <img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" onclick="location.href='{% url 'home' %}'"/>
+            </div>
+            <div class="nav-bar">
+                <div class="community-btn">
+                    <div class="title">Community</div>
+                </div>
+            </div>
+            <div class="button-group-after-sign-up">
+                <button class="username" onclick="location.href='{% url 'profile' %}'">{{ user.username }} 님</button>
+                <button class="btn-logout" onclick="location.href='{% url 'logout' %}'">Log out</button>
+            </div>
+        </div>
+
+        <form method="post">
+            <div class="title_section">
+                <div class="text-content-title">
+                    <div class="div">{{ slide.name }}</div>
+                    <div class="subtitle">(부주제)</div>
+                </div>
+                <div>
+                    {% if presentation_id %}
+                        <button class="button-start-button" onclick="location.href='{% url 'download_slide' presentation_id %}'">다운로드</button>
+                    {% else %}
+                        <p>Error: Missing presentation_id</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 슬라이드 미리보기 섹션 -->
+            <div class="slides-container">
+                {% if first_slide_images %}
+                    {% for image_url in first_slide_images %}
+                        <div class="slide-thumbnail" onclick="openModal('{{ image_url }}')">
+                            <img src="{{ image_url }}" alt="슬라이드 썸네일">
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>슬라이드가 없습니다.</p>
+                {% endif %}
+            </div>
+
+            <!-- 모달 창 -->
+            <div id="imageModal" class="modal">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <img class="modal-content" id="modalImage">
+            </div>
+        </form>
+
+        <div class="main-footer-section">
+            <div class="icon-title">
+                <img class="icon-footer" src="{% static 'css/img/X Logo.svg' %}" />
+                <img class="icon-footer" src="{% static 'css/img/Logo Instagram.svg' %}" />
+                <img class="icon-footer" src="{% static 'css/img/Logo YouTube.svg' %}" />
+                <img class="icon-footer" src="{% static 'css/img/LinkedIn.svg' %}" />
+            </div>
+            <div class="text-section">
+                <div class="text-strong-wrapper">
+                    <div class="text-strong"><div class="div_footer">Use cases</div></div>
+                </div>
+                <div class="text-link-list-item"><div class="list-item">UI design</div></div>
+                <div class="text-link-list-item"><div class="list-item">UX design</div></div>
+                <div class="text-link-list-item"><div class="list-item">Wireframing</div></div>
+                <div class="text-link-list-item"><div class="list-item">Diagramming</div></div>
+                <div class="text-link-list-item"><div class="list-item">Brainstorming</div></div>
+                <div class="text-link-list-item"><div class="list-item">Online whiteboard</div></div>
+                <div class="text-link-list-item"><div class="list-item">Team collaboration</div></div>
+            </div>
+        </div>
+        <p class="main-copyright">ⓒ 2025. 02.12 Team_3 All rights reserved.</p>
+    </div>
+
+    <script>
+        // 모달 열기
+        function openModal(imageUrl) {
+            var modal = document.getElementById("imageModal");
+            var modalImage = document.getElementById("modalImage");
+
+            modal.style.display = "block";
+            modalImage.src = imageUrl;
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        }
+
+        // 클릭하면 모달 닫기
+        window.onclick = function(event) {
+            var modal = document.getElementById("imageModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+    </script>
+</body>
+</html>

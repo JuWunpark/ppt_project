@@ -1,0 +1,84 @@
+{% load static %}
+{% if user.is_authenticated %}
+<!DOCTYPE html>
+<html>
+  <head>
+      {#  logined_home  #}
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{% static "css/Home_globals.css" %}" />
+    <link rel="stylesheet" href="{% static "css/Home_styleguide.css" %}" />
+    <link rel="stylesheet" href="{% static "css/Home_style.css" %}" />
+  </head>
+  <body>
+    <div class="main-homepage">
+      <div class="main-header">
+        <div class="logo-block"><img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" /></div>
+        <div class="nav-bar">
+          <div class="community-btn"><div class="title">Community</div></div>
+        </div>
+        <div class="button-group-log-IN">
+            <button class="profile-img" onclick="location.href='{% url 'signup' %}'">Sign up</button>
+            <button class="profile-icon-LOGOUT" onclick="location.href='{% url 'login' %}'">Sign in</button>
+        </div>
+      </div>
+      <div class="main-section">
+        <div class="main-title-group">
+          <p class="main-title">PPT 날먹을 위한 최고의 선택</p>
+          <div class="main-subtitle">와! 과제날먹!</div>
+        </div>
+        <div class="button-start">
+          <button class="button-start-button" onclick="location.href='{% url 'test' %}'">시작하기</button>
+        </div>
+      </div>
+      <div class="main-banner-section">
+          <img class="main-banner-section"/>
+      </div>
+      <div class="main-footer-section">
+          <div class="icon-title">
+            <img class="icon-footer" src="{% static 'css/img/X Logo.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/Logo Instagram.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/Logo YouTube.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/LinkedIn.svg' %}" />
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div">Use cases</div></div>
+          </div>
+              <div class="text-link-list-item"><div class="list-item">UI design</div></div>
+              <div class="text-link-list-item"><div class="list-item">UX design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Wireframing</div></div>
+              <div class="text-link-list-item"><div class="list-item">Diagramming</div></div>
+              <div class="text-link-list-item"><div class="list-item">Brainstorming</div></div>
+              <div class="text-link-list-item"><div class="list-item">Online whiteboard</div></div>
+              <div class="text-link-list-item"><div class="list-item">Team collaboration</div></div>
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div">Explore</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Prototyping</div></div>
+              <div class="text-link-list-item"><div class="list-item">Development features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design systems</div></div>
+              <div class="text-link-list-item"><div class="list-item">Collaboration features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design process</div></div>
+              <div class="text-link-list-item"><div class="list-item">FigJam</div></div>
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                <div class="text-strong"><div class="div">Resources</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Blog</div></div>
+              <div class="text-link-list-item"><div class="list-item">Best practices</div></div>
+              <div class="text-link-list-item"><div class="list-item">Colors</div></div>
+              <div class="text-link-list-item"><div class="list-item">Color wheel</div></div>
+              <div class="text-link-list-item"><div class="list-item">Support</div></div>
+              <div class="text-link-list-item"><div class="list-item">Developers</div></div>
+              <div class="text-link-list-item"><div class="list-item">Resource library</div></div>
+          </div>
+      </div>
+        <p class="main-copyright">ⓒ 2025. 02.12 Team_3 All rights reserved.</p>
+    </div>
+  </body>
+</html>
+{% endif %}

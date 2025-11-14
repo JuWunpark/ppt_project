@@ -1,71 +1,300 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8" />
-   <link rel="stylesheet" href="{% static "css/globals.css"%}">
-    <link rel="stylesheet" href="{% static "css/prompt_guide.css"%}" >
-    <link rel="stylesheet" href="{% static "css/prompt.css"%}" >
-  </head>
-  <body>
-    <div class="screen">
-      <header class="header">
-        <img class="block" src="img/block.svg" />
-        <div class="navigation-pill-list">
-          <div class="button"><button class="div">Mypage</button></div>
-        </div>
-      </header>
-      <div class="hero-newsletter">
-        <div class="text-content-title"><div class="text-wrapper">주제를 입력해주세요!</div></div>
-        <div class="form-newsletter">
-            <form method="post">
-                {% csrf_token %}
-                <div class="input-field">
-                    <div class="input"><div class="value">입력</div></div>
-                </div>
-            </form>
+    <link rel="stylesheet" href="{% static 'css/Home_styleguide.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/Home_globals.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/prompt_style.css' %}" />
+    <style>
+        #chat-container {
+            width: 100%;
+            min-height: 300px;
+            border: 1px solid #ccc;
+            background: white;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .user {
+            display: inline-flex;
+            flex-direction: column;
+            align-self: flex-end;
+            justify-content: center;
+            max-width: 550px;
+            font-size: 24px;
+            letter-spacing: 0;
+            line-height: 24px;
+            gap: 10px;
+            padding: 24px;
+            position: relative;
+            flex: 0 0 auto;
+            border-radius: 15px;
+            background: linear-gradient(
+                    180deg,
+                    rgb(218.88, 218.88, 218.88) 0%,
+                    rgb(245.44, 245.44, 245.44) 100%
+            );
+        }
+        .bot {
+            display: inline-flex;
+            flex-direction: column;
+            align-self: flex-start;
+            justify-content: center;
+            max-width: 550px;
+            font-size: 24px;
+            letter-spacing: 0;
+            line-height: 24px;
+            gap: 10px;
+            padding: 24px;
+            position: relative;
+            flex: 0 0 auto;
+            border-radius: 15px;
+            background: linear-gradient(
+                    180deg,
+                    rgb(218.88, 218.88, 218.88) 0%,
+                    rgb(245.44, 245.44, 245.44) 100%
+            );
+        }
 
-          <div class="button"><button class="div" onclick="location.href='{% url 'export' %}'">입력</button></div>
+        #input-container {
+            display: flex;
+            width: 400px;
+            margin-top: 10px;
+        }
+        input[type="checkbox"] {
+            display: none;
+        }
+        /* 체크박스 스타일 커스텀 */
+        .custom-checkbox {
+            display: inline-block;
+            min-width: 34px;
+            min-height: 34px;
+            border-radius: 10px;
+            background-color: var(--color-primitives-slate-200);
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+        /* 체크되었을 때 배경색 변경 */
+        input[type="checkbox"]:checked + .custom-checkbox {
+            background-color: #1b1b1b;
+            border: #1b1b1b;
+        }
+
+        input[type="checkbox"]:checked + .custom-checkbox::after {
+            content: "✔";
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+<form method="post" id="prompt_data">
+    {% csrf_token %}
+    <div class="main-prompt">
+        <div class="header">
+            <div class="logo-block">
+                <img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" onclick="location.href='{% url 'home' %}'"/>
+            </div>
+            <div class="nav-bar">
+                <div class="community-btn">
+                    <div class="title">Community</div>
+                </div>
+            </div>
+            <div class="button-group-after-sign-up">
+                <button class="username" onclick="location.href='{% url 'profile' %}'">{{ user.username }} 님</button>
+                <button class="btn-logout" onclick="location.href='{% url 'logout' %}'">Log out</button>
+            </div>
         </div>
-      </div>
-      <div class="cards">
-        <div class="card">
-          <div class="image"></div>
-          <div class="body">
-            <div class="text">
-              <div class="title-2">템플릿</div>
-              <div class="body-text-for">템플릿</div>
-            </div>
-            <div class="button-group">
-              <button class="button-wrapper"><button class="button-2">선택</button></button>
-            </div>
-          </div>
+    <div class="hero-newsletter">
+        <div class="text-content-title">
+            <div class="div">원하는 것을 말하세요!</div>
         </div>
-        <div class="card">
-          <div class="image-2"></div>
-          <div class="body">
-            <div class="text">
-              <div class="title-2">템플릿</div>
-              <div class="body-text-for">템플릿</div>
-            </div>
-            <div class="button-group">
-              <button class="button-wrapper"><button class="button-2">선택</button></button>
-            </div>
-          </div>
+        <div class="frame" id="chat-container">
+{#            <div class="text-box-prompt">#}
+{#                <p class="p">안녕하세요! 당신이 원하는 PPT를 만들기 위해 최선을 다하겠습니다.</p>#}
+{#            </div>#}
+{#            <div class="group">#}
+{##}
+{#            </div>#}
         </div>
-        <div class="card">
-          <div class="image-3"></div>
-          <div class="body">
-            <div class="text">
-              <div class="title-2">템플릿</div>
-              <div class="body-text-for">템플릿</div>
+            <div class="form-newsletter">
+                    <div class="input-field" id="input-container">
+                        <input type="text" class="input" id="user-input" name="user-input" placeholder="대화를 시작하세요!" required/>
+                        <button type="submit" class="button_input" id="button_input">입력</button>
+                    </div>
             </div>
-            <div class="button-group">
-              <button class="button-wrapper"><button class="button-2">선택</button></button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  </body>
+    <div class="cards">
+        <div class="card">
+            <img class="image_temp" src="{% static 'css/img/template2.jpg' %}"/>
+            <div class="body">
+                <div class="text">
+                    <div class="title-2">템플릿 1</div>
+{#                    <div class="body-text-for">소개</div>#}
+{#                    <div class="body-text-for">...</div>#}
+                </div>
+                    <label class="label_check_box">
+                        <input type="checkbox" id="presentation_id" class="single-checkbox" name="presentation_id" value="1BD_IbF8x62MsUNlFGbWSmt4v7rpMR5us8BxIwmvMZ9I">
+                        <span class="custom-checkbox"></span>
+                    </label>
+            </div>
+        </div>
+        <div class="card">
+            <img class="image_temp" src="{% static 'css/img/template1.jpg' %}"/>
+            <div class="body">
+                <div class="text">
+                    <div class="title-2">템플릿 2</div>
+{#                    <div class="body-text-for">소개</div>#}
+{#                    <div class="body-text-for">...</div>#}
+                </div>
+
+
+                    <label class="label_check_box">
+                        <input type="checkbox" id="presentation_id" class="single-checkbox" name=presentation_id value="19OAsGTO9QKHR-GQ-Fw_uc1JrYuC8NC58pj711l2ByD4">
+                        <span class="custom-checkbox"></span>
+                    </label>
+
+            </div>
+        </div>
+        <div class="card">
+            <img class="image_temp" src="{% static 'css/img/template3.jpg' %}"/>
+            <div class="body">
+                <div class="text">
+                    <div class="title-2">템플릿 3</div>
+{#                    <div class="body-text-for">소개</div>#}
+{#                    <div class="body-text-for">...</div>#}
+                </div>
+                    <label class="label_check_box">
+                        <input type="checkbox"  id="presentation_id" class="single-checkbox" name=presentation_id value="1QTy_L8GU-fDZV5jE9ZO5aEuW2l1eDcFa6NH5BOYR8Ak" >
+                        <span class="custom-checkbox"></span>
+                    </label>
+            </div>
+        </div>
+    </div>
+    <div class="main-footer-section">
+          <div class="icon-title">
+            <img class="icon-footer" src="{% static 'css/img/X Logo.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/Logo Instagram.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/Logo YouTube.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/LinkedIn.svg' %}" />
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div_footer">Use cases</div></div>
+          </div>
+              <div class="text-link-list-item"><div class="list-item">UI design</div></div>
+              <div class="text-link-list-item"><div class="list-item">UX design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Wireframing</div></div>
+              <div class="text-link-list-item"><div class="list-item">Diagramming</div></div>
+              <div class="text-link-list-item"><div class="list-item">Brainstorming</div></div>
+              <div class="text-link-list-item"><div class="list-item">Online whiteboard</div></div>
+              <div class="text-link-list-item"><div class="list-item">Team collaboration</div></div>
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div_footer">Explore</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Prototyping</div></div>
+              <div class="text-link-list-item"><div class="list-item">Development features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design systems</div></div>
+              <div class="text-link-list-item"><div class="list-item">Collaboration features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design process</div></div>
+              <div class="text-link-list-item"><div class="list-item">FigJam</div></div>
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                <div class="text-strong"><div class="div_footer">Resources</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Blog</div></div>
+              <div class="text-link-list-item"><div class="list-item">Best practices</div></div>
+              <div class="text-link-list-item"><div class="list-item">Colors</div></div>
+              <div class="text-link-list-item"><div class="list-item">Color wheel</div></div>
+              <div class="text-link-list-item"><div class="list-item">Support</div></div>
+              <div class="text-link-list-item"><div class="list-item">Developers</div></div>
+              <div class="text-link-list-item"><div class="list-item">Resource library</div></div>
+          </div>
+      </div>
+        <p class="main-copyright">ⓒ 2025. 02.12 Team_3 All rights reserved.</p>
+    </div>
+    </form>
+    <script>
+        document.getElementById("prompt_data").addEventListener("submit", function(event) {
+        let checkboxes = document.querySelectorAll(".single-checkbox:checked");
+        if (checkboxes.length === 0) {
+            alert("하나 이상의 템플릿을 선택해주세요!");
+            event.preventDefault(); // 제출 방지
+        }
+
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("chat-form");
+            const inputField = document.getElementById("user-input");
+            const chatContainer = document.getElementById("chat-container");
+
+            function sendMessage(event) {
+                event.preventDefault();  // ✅ 폼 기본 제출 동작 방지 (새로고침 방지)
+
+                const message = inputField.value.trim();
+                if (!message) return;
+
+                addMessage(message, "user"); // 사용자 메시지 추가
+
+                // ✅ AJAX를 이용하여 서버에 데이터 전송
+                fetch(form.action, {
+                    method: "POST",
+                    body: new FormData(form),
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(response => response.json())  // JSON 응답 처리
+                    .then(data => {
+                        if (data.reply) {
+                            setTimeout(() => {
+                                addMessage(data.reply, "bot"); // 서버 응답을 채팅창에 추가
+                            }, 500);
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+
+                inputField.value = "";  // 입력 필드 초기화
+            }
+
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message", sender);
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            form.addEventListener("submit", sendMessage);
+
+        });
+        document.querySelectorAll('.single-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            document.querySelectorAll('.single-checkbox').forEach(cb => {
+                if (cb !== this) cb.checked = false;
+            });
+        });
+        function  getCheckboxValue(){
+            const query = 'input[name='
+        }
+    });
+    </script>
+</body>
 </html>

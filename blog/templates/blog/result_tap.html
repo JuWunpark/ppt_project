@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{% static "css/Home_globals.css" %}" />
+    <link rel="stylesheet" href="{% static "css/Home_styleguide.css" %}" />
+    <link rel="stylesheet" href="{% static "css/result_style.css" %}" />
+    <script src="{% static 'js/logout.js' %}" defer></script>
+    <style>
+        .slide-thumbnail {
+            width: 200px;
+            height: auto;
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .slide-thumbnail:hover {
+            transform: scale(1.1);
+        }
+    </style>
+    <title>PPT</title>
+    <style>
+        .slide-thumbnail {
+            width: 200px;
+            height: auto;
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .slide-thumbnail:hover {
+            transform: scale(1.1);
+        }
+
+        /* 다운로드 알림 스타일 추가 */
+        .download-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .download-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .download-content {
+            display: flex;
+            padding: 16px;
+            align-items: center;
+        }
+
+        .download-icon {
+            margin-right: 12px;
+            color: #4285F4;
+        }
+
+        .download-message {
+            flex: 1;
+        }
+
+        .download-filename {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .download-status {
+            font-size: 0.85em;
+            color: #5f6368;
+        }
+
+        .download-progress {
+            height: 4px;
+            width: 100%;
+            background-color: #e0e0e0;
+        }
+
+        .download-progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4285F4;
+            transition: width 0.3s ease;
+        }
+
+        .download-complete .download-icon {
+            color: #0F9D58;
+        }
+    </style>
+</head>
+<body>
+     <div id="download-notification" class="download-notification">
+          <div class="download-content">
+            <div class="download-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <div class="download-message">
+              <span class="download-filename">프레젠테이션</span>
+              <span class="download-status">다운로드 중...</span>
+            </div>
+          </div>
+          <div class="download-progress">
+            <div class="download-progress-bar"></div>
+          </div>
+     </div>
+
+ <div class="main-result">
+    <div class="main-result">
+        <div class="header">
+            <div class="logo-block">
+                <img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" onclick="location.href='{% url 'home' %}'"/>
+            </div>
+            <div class="nav-bar">
+                <div class="community-btn">
+                    <div class="title">Community</div>
+                </div>
+            </div>
+            <div class="button-group-after-sign-up">
+                <button class="username" onclick="location.href='{% url 'profile' %}'">{{ user.username }} 님</button>
+                <button class="btn-logout" onclick="location.href='{% url 'logout' %}'">Log out</button>
+            </div>
+        </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="title_section">
+            <div class="text-content-title">
+                <div class="subtitle">completed successfully </div>
+            </div>
+            <div>
+                {% if presentation_id %}
+                   <a href="{% url 'download_slide' presentation_id %}" class="button-start-button">다운로드</a>
+{#                    <button class="button-start-button" onclick="location.href='{% url 'download_slide' presentation_id %}'">다운로드</button>#}
+{#                        <button class="button-start-button" onclick="console.log('{% url 'download_slide' presentation_id %}')">다운로드</button>#}
+
+
+                {% else %}
+
+                    <p>Error: Missing presentation_id</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="img_section">
+            <div class="img_panel">
+                {% for image in slides %}
+                        <img class="image" src="{{ image }}" alt="{% static 'css/img/error.png' %}"/>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="main-footer-section">
+                <div class="icon-title">
+                    <img class="icon-footer" src="{% static 'css/img/X Logo.svg' %}" />
+                    <img class="icon-footer" src="{% static 'css/img/Logo Instagram.svg' %}" />
+                    <img class="icon-footer" src="{% static 'css/img/Logo YouTube.svg' %}" />
+                    <img class="icon-footer" src="{% static 'css/img/LinkedIn.svg' %}" />
+                </div>
+                <div class="text-section">
+                    <div class="text-strong-wrapper">
+                        <div class="text-strong"><div class="div_footer">Use cases</div></div>
+                    </div>
+                    <div class="text-link-list-item"><div class="list-item">UI design</div></div>
+                    <div class="text-link-list-item"><div class="list-item">UX design</div></div>
+                    <div class="text-link-list-item"><div class="list-item">Wireframing</div></div>
+                    <div class="text-link-list-item"><div class="list-item">Diagramming</div></div>
+                    <div class="text-link-list-item"><div class="list-item">Brainstorming</div></div>
+                    <div class="text-link-list-item"><div class="list-item">Online whiteboard</div></div>
+                    <div class="text-link-list-item"><div class="list-item">Team collaboration</div></div>
+                </div>
+                <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div_footer">Explore</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Prototyping</div></div>
+              <div class="text-link-list-item"><div class="list-item">Development features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design systems</div></div>
+              <div class="text-link-list-item"><div class="list-item">Collaboration features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design process</div></div>
+              <div class="text-link-list-item"><div class="list-item">FigJam</div></div>
+          </div>
+                <div class="text-section">
+              <div class="text-strong-wrapper">
+                <div class="text-strong"><div class="div_footer">Resources</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Blog</div></div>
+              <div class="text-link-list-item"><div class="list-item">Best practices</div></div>
+              <div class="text-link-list-item"><div class="list-item">Colors</div></div>
+              <div class="text-link-list-item"><div class="list-item">Color wheel</div></div>
+              <div class="text-link-list-item"><div class="list-item">Support</div></div>
+              <div class="text-link-list-item"><div class="list-item">Developers</div></div>
+              <div class="text-link-list-item"><div class="list-item">Resource library</div></div>
+          </div>
+        </div>
+        <p class="main-copyright">ⓒ 2025. 02.12 Team_3 All rights reserved.</p>
+    </form>
+    </div>
+  <p class="main-copyright">ⓒ 2025. 02.12 Team_3 All rights reserved.</p>
+    </form>
+    </div>
+
+    <!-- 다운로드 알림 스크립트 -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // 다운로드 버튼 요소를 선택
+        const downloadBtn = document.querySelector('a.button-start-button');
+
+        if (downloadBtn) {
+          downloadBtn.addEventListener('click', function(e) {
+            // 기본 링크 동작은 그대로 두고 알림만 표시
+            showDownloadNotification();
+          });
+        }
+
+        function showDownloadNotification() {
+          const notification = document.getElementById('download-notification');
+          const progressBar = notification.querySelector('.download-progress-bar');
+          const statusText = notification.querySelector('.download-status');
+
+          // 알림 표시
+          notification.classList.add('show');
+
+          // 진행 상태 시뮬레이션 (실제로는 다운로드 진행률에 따라 업데이트해야 함)
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = progress + '%';
+
+            if (progress >= 100) {
+              clearInterval(interval);
+              statusText.textContent = '다운로드 완료';
+              notification.classList.add('download-complete');
+
+              // 잠시 후 알림 닫기
+              setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                  progressBar.style.width = '0%';
+                  statusText.textContent = '다운로드 중...';
+                  notification.classList.remove('download-complete');
+                }, 300);
+              }, 2000);
+            }
+          }, 100);
+        }
+      });
+    </script>
+</body>
+</html>

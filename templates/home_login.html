@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8" />
+      <link rel="stylesheet" href="{% static "css/Home_globals.css" %}" />
+      <link rel="stylesheet" href="{% static "css/Home_styleguide.css" %}" />
+      <link rel="stylesheet" href="{% static "css/Home_style.css" %}" />
+      <script src="{% static 'js/logout.js' %}" defer></script>
+      <title>PPT</title>
+  </head>
+  <body>
+    <div class="main-homepage">
+      <div class="main-header">
+        <div class="logo-block">
+            <img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" onclick="location.href='{% url 'home' %}'"/>
+        </div>
+        <div class="nav-bar">
+          <div class="community-btn"><div class="title">Community</div></div>
+        </div>
+          {% if user.is_authenticated %}
+              <!-- 로그인한 경우: 프로필과 로그아웃 버튼 -->
+              <div class="button-group-after-sign-up">
+                <button class="username" onclick="location.href='{% url 'profile' %}'">{{ user.username }} 님</button>
+                <button class="btn-logout" onclick="location.href='{% url 'logout' %}'">Log out</button>
+              </div>
+          {% else %}
+              <!-- 로그인하지 않은 경우: 회원가입 및 로그인 버튼 -->
+              <div class="button-group-sign">
+                  <button class="btn-sign-up" onclick="location.href='{% url 'signup' %}'">Sign up</button>
+                  <button class="btn-sign-in" onclick="location.href='{% url 'login' %}'">Sign in</button>
+              </div>
+          {% endif %}
+      </div>
+      <div class="main-section">
+        <div class="main-title-group">
+          <p class="main-title">PPT 날먹을 위한 최고의 선택</p>
+          <div class="main-subtitle">와! 과제날먹!</div>
+        </div>
+        <div class="button_start_group">
+            {% if user.is_authenticated %}
+                <button class="button-start-button" onclick="location.href='{% url 'prompt' %}'">시작하기</button>
+            {% else %}
+                <button class="button-start-button" onclick="location.href='{% url 'login' %}'">시작하기</button>
+            {% endif %}
+        </div>
+      </div>
+{#      <div class="main-banner-section">#}
+{#          <img class="main-banner-section"/>#}
+{#      </div>#}
+      <div class="main-footer-section">
+          <div class="icon-title">
+            <img class="icon-footer" src="{% static 'css/img/X Logo.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/Logo Instagram.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/Logo YouTube.svg' %}" />
+            <img class="icon-footer" src="{% static 'css/img/LinkedIn.svg' %}" />
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div">Use cases</div></div>
+          </div>
+              <div class="text-link-list-item"><div class="list-item">UI design</div></div>
+              <div class="text-link-list-item"><div class="list-item">UX design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Wireframing</div></div>
+              <div class="text-link-list-item"><div class="list-item">Diagramming</div></div>
+              <div class="text-link-list-item"><div class="list-item">Brainstorming</div></div>
+              <div class="text-link-list-item"><div class="list-item">Online whiteboard</div></div>
+              <div class="text-link-list-item"><div class="list-item">Team collaboration</div></div>
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                  <div class="text-strong"><div class="div">Explore</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Design</div></div>
+              <div class="text-link-list-item"><div class="list-item">Prototyping</div></div>
+              <div class="text-link-list-item"><div class="list-item">Development features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design systems</div></div>
+              <div class="text-link-list-item"><div class="list-item">Collaboration features</div></div>
+              <div class="text-link-list-item"><div class="list-item">Design process</div></div>
+              <div class="text-link-list-item"><div class="list-item">FigJam</div></div>
+          </div>
+          <div class="text-section">
+              <div class="text-strong-wrapper">
+                <div class="text-strong"><div class="div">Resources</div></div>
+              </div>
+              <div class="text-link-list-item"><div class="list-item">Blog</div></div>
+              <div class="text-link-list-item"><div class="list-item">Best practices</div></div>
+              <div class="text-link-list-item"><div class="list-item">Colors</div></div>
+              <div class="text-link-list-item"><div class="list-item">Color wheel</div></div>
+              <div class="text-link-list-item"><div class="list-item">Support</div></div>
+              <div class="text-link-list-item"><div class="list-item">Developers</div></div>
+              <div class="text-link-list-item"><div class="list-item">Resource library</div></div>
+          </div>
+      </div>
+        <p class="main-copyright">ⓒ 2025. 02.12 Team_3 All rights reserved.</p>
+    </div>
+  </body>
+</html>

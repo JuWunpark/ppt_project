@@ -10,12 +10,13 @@
 #         return self.username
 
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.conf import settings
 
 class CustomUser(AbstractUser):
     nickname = models.CharField(max_length=50, unique=True)
 
-    # 🔥 충돌 방지: related_name 설정 추가
     groups = models.ManyToManyField(
         "auth.Group",
         related_name="customuser_set",  # 기존 'user_set'과 충돌 방지
@@ -29,3 +30,12 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+class UserHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    ppt_title = models.CharField(max_length=500)
+    ppt_url = models.CharField(max_length=500)
+    create_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.ppt_url}"

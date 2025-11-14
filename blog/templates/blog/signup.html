@@ -1,67 +1,99 @@
 {% load static %}
-{#{% extends "base.html" %}#}
-{##}
-{#{% block content %}#}
-{#  <h2>회원가입</h2>#}
-{#  <form method="post">#}
-{#    {% csrf_token %}#}
-{#    {{ form.as_p }}#}
-{#    <button type="submit">가입하기</button>#}
-{#  </form>#}
-{#{% endblock %}#}
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="{% static "css/globals.css"%}">
-    <link rel="stylesheet" href="{% static "css/styleguide.css"%}" >
-    <link rel="stylesheet" href="{% static "css/style.css"%}" >
+    <link rel="stylesheet" href="{% static 'css/Home_globals.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Home_styleguide.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sign_up_style.css' %}"> <!-- ✅ CSS 적용 -->
   </head>
-
-
-
   <body>
-    <div class="sign-up">
-      <div class="overlap-wrapper">
-        <div class="overlap">
-          <div class="hero-form">
-
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-contact">
-                          <div class="input-field">
-                            <div class="label">User name</div>
-                             {{ form.username }}
-                          </div>
-
-                          <div class="input-field">
-                            <div class="label">Nickmane</div>
-                            {{ form.nickname }}
-                          </div>
-                          <div class="input-field">
-                            <div class="label">Email</div>
-                            {{ form.email }}
-                          </div>
-                          <div class="input-field">
-                            <div class="label">Password</div>
-                            {{ form.password1 }}
-                          </div>
-                          <div class="input-field">
-                            <div class="label">Password again</div>
-                            {{ form.password2 }}
-                          </div>
-                          <div class="button">
-                            <button class="text-wrapper" onclick="location.href='{% url 'signup' %}'">Sign up</button>
-                          </div>
-
-                </div>
-            </form>
-          </div>
-          <header class="header">
-            <div class="overlap-group"><div class="text-wrapper-2">회원가입</div></div>
-          </header>
+    <div class="main-sign-up"> <!-- ✅ 클래스명을 수정 -->
+        <div class="header">
+            <div class="block">
+                <img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" onclick="location.href='{% url 'home' %}'"/>
+            </div>
+            <div class="text-wrap">회원가입</div>
         </div>
-      </div>
+        <form method="post">
+            {% csrf_token %}
+        <div class="sign-up-form">
+            <div class="input-field">
+                <label class="label" for="id_username">Username</label>
+                <input type="text" name="username" class="input" placeholder="Enter your username" required id="id_username">
+            </div>
+
+            <div class="input-field">
+                <label class="label" for="id_nickname">Nickname</label>
+                <input type="text" name="nickname" class="input" placeholder="Enter your nickname" required id="id_nickname">
+            </div>
+
+            <div class="input-field">
+                <label class="label" for="id_email">Email</label>
+                <input type="email" name="email" class="input" placeholder="Enter your email" required id="id_email">
+            </div>
+
+            <div class="input-field">
+                <label class="label" for="id_password1">Password</label>
+                <input type="password" name="password1" class="input" placeholder="Enter your password" required id="id_password1">
+            </div>
+
+            <div class="input-field">
+                <label class="label" for="id_password2">Password again</label>
+                <input type="password" name="password2" class="input" placeholder="Re-enter your password" required id="id_password2">
+            </div>
+            <div class="button-group">
+                <button class="button" type="submit">Sign up</button>
+            </div>
+            <div class="button-group">
+                <a href="{% url 'home' %}" class="text_link">Back</a>
+            </div>
+            <div>
+                <a href="{% url 'login' %}" class="text-link-acc">You already have account?</a>
+            </div>
+        </div>
+    </form>
     </div>
   </body>
 </html>
+
+
+{#    <div class="sign-up">#}
+{#      <div class="overlap-wrapper">#}
+{#        <div class="overlap">#}
+{#          <div class="hero-form">#}
+{#            <form method="post">#}
+{#                {% csrf_token %}#}
+{#                <div class="form-contact">#}
+{#                          <div class="input-field">#}
+{#                            <div class="label">User name</div>#}
+{#                             {{ form.username }}#}
+{#                          </div>#}
+{#                          <div class="input-field">#}
+{#                            <div class="label">Nickmane</div>#}
+{#                            {{ form.nickname }}#}
+{#                          </div>#}
+{#                          <div class="input-field">#}
+{#                            <div class="label">Email</div>#}
+{#                            {{ form.email }}#}
+{#                          </div>#}
+{#                          <div class="input-field">#}
+{#                            <div class="label">Password</div>#}
+{#                            {{ form.password1 }}#}
+{#                          </div>#}
+{#                          <div class="input-field">#}
+{#                            <div class="label">Password again</div>#}
+{#                            {{ form.password2 }}#}
+{#                          </div>#}
+{#                          <div class="button">#}
+{#                            <button class="text-wrapper" onclick="location.href='{% url 'signup' %}'">Sign up</button>#}
+{#                          </div>#}
+{#                </div>#}
+{#            </form>#}
+{#          </div>#}
+{#          <header class="header">#}
+{#            <div class="overlap-group"><div class="text-wrapper-2">회원가입</div></div>#}
+{#          </header>#}
+{#        </div>#}
+{#      </div>#}
+{#    </div>#}

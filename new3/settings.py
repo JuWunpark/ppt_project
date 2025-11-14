@@ -11,11 +11,16 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -27,7 +32,6 @@ DEBUG = True
 
 #ALLOWED_HOSTS = []
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-# sdfasdfaff
 
 INSTALLED_APPS = [
     "django.contrib.admin", # admin 추가
@@ -38,7 +42,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "blog",
 ]  #blog 회원관리 앱 추가
-
 
 
 MIDDLEWARE = [
@@ -85,8 +88,8 @@ WSGI_APPLICATION = "new3.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ppt_db',  # MySQL DB 이름
-        'USER': 'root',          # MySQL 사용자 이름
+        'NAME': 'project_db',  # MySQL DB 이름
+        'USER': 'project_user',          # MySQL 사용자 이름
         'PASSWORD': '1234',  # MySQL 비밀번호
         'HOST': 'localhost',     # MySQL 서버 주소
         'PORT': '3306',
@@ -140,3 +143,21 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'blog.CustomUser'
+
+# 이메일 백엔드 설정
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# 이메일 서버 설정
+EMAIL_HOST = 'smtp.gmail.com'  # Gmail SMTP 서버
+EMAIL_PORT = 587  # SMTP 포트 (TLS)
+EMAIL_USE_TLS = True  # TLS를 사용
+EMAIL_HOST_USER = 'autoppt3@gmail.com'  # 보내는 이메일 주소
+EMAIL_HOST_PASSWORD = 'fqhh wfyc rngk dxfp'  # Gmail 앱 비밀번호
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # 이메일 보내는 사람
+
+# 세션과 만료시 로그아웃
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_AGE = 1800  # 30분
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프롬프트 채팅창</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            border: 1px solid #ccc;
+            background: white;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .user {
+            background-color: #d1e7fd;
+            align-self: flex-end;
+        }
+        .bot {
+            background-color: #e8e8e8;
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <div class="frame">
+        <div id="chat-container"></div>
+    </div>
+    <div class="form-newsletter">
+        <div class="input-field">
+            <input type="text" id="user-input" class="input" placeholder="대화를 시작하세요!" />
+        </div>
+        <button class="button_input" onclick="sendMessage()">입력</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputField = document.getElementById("user-input");
+            const sendButton = document.querySelector(".button_input");
+            const chatContainer = document.getElementById("chat-container");
+
+            if (!inputField || !sendButton || !chatContainer) {
+                console.error("필수 요소를 찾을 수 없습니다.");
+                return;
+            }
+
+            function sendMessage() {
+                const message = inputField.value.trim();
+                if (message === "") return;
+
+                addMessage(message, "user");
+
+                setTimeout(() => {
+                    addMessage("안녕하세요! 무엇을 도와드릴까요?", "bot");
+                }, 500);
+
+                inputField.value = "";
+            }
+
+            function addMessage(text, sender) {
+                if (!chatContainer) {
+                    console.error("채팅 컨테이너를 찾을 수 없습니다.");
+                    return;
+                }
+
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message", sender);
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // 페이지 로드 시 첫 메시지 자동 추가
+            addMessage("안녕하세요! 무엇을 도와드릴까요?", "bot");
+
+            sendButton.addEventListener("click", sendMessage);
+            inputField.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

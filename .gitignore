@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+*.pyc
+*.sqlite3
+
+# 민감한 정보
+.env
+token.json
+client_secret.json
+credentials.json
+
+# IDE
+.idea/
+.vscode/

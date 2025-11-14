@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{% static 'css/Home_styleguide.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/Home_globals.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/profile_style.css' %}" />
+    <style>
+    .ppt-url {
+        display: block; /* 링크를 블록 요소로 설정하여 줄 바꿈 */
+        margin-top: 10px; /* 위쪽 여백 추가 */
+    }
+    </style>
+</head>
+<body class="body_size">
+    <div class="main-my-page">
+        <div class="header">
+            <div class="block">
+                <img class="LOGO-PT" src="{% static 'css/img/LOGO_PT.png' %}" onclick="location.href='{% url 'home' %}'"/>
+            </div>
+            <div class="text-wrap">프로필</div>
+        </div>
+        <div class="my_information">
+            <div class="information_block">
+                <div class="image-profile">
+                    <img class="shape" src="{% static 'css/img/default_profile_user.png' %}" />
+                </div>
+                <div class="info">
+                    <div class="part">
+{#                        <img class="line" src="{% static 'css/img/white_line_bar.svg' %}" />#}
+                        <div class="text-wrapper">Username</div>
+                        <div class="text-wrapper-2">{{ user.username }}</div>
+                        <div class="text-wrapper">Email</div>
+                        <div class="text-wrapper-2">{{ user.email }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="description_area">
+                <div class="text-wrapper">History</div>
+                 <form class="historyForm" method="POST" action="{% url 'delete_user_history' %}">
+                 {% csrf_token %}
+                 {% for history in user_histories %}
+                    <div class="text-wrap   per-2">
+                         <div class="ppt-title">{{ history.ppt_title }}</div>
+                            <a href="{{ history.ppt_url }}" class="ppt-url"> {{ history.ppt_url }}
+                             <label class="label_check_box">
+                                    <input type="checkbox" id="presentation_id" class="single-checkbox" name=presentation_id value="{{ history.id }}">
+                                    <span class="custom-checkbox"></span>
+                             </label>
+                            </a>
+                    </div><br><br>
+                 {% empty %}
+                    <div class="text-wrapper-2">No history available.</div>
+                 {% endfor %}
+            </div>
+            <div class="btn_info_set_div">
+                <button class="btn_info_set" type="submit" onclick="return confirmDelete()">삭제</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</body>
+<script>
+    function confirmDelete() {
+        return confirm("정말 삭제하시겠습니까?");
+    }
+</script>
+</html>
