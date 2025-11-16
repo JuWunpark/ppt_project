@@ -19,6 +19,8 @@ from django.http import HttpResponse
 from .models import UserHistory
 from django.conf import settings
 import openai
+import re
+
 
 
 # OpenAI 설정
@@ -31,6 +33,7 @@ client = openai.Client(
 # API 권한 범위 설정
 SCOPES = ['https://www.googleapis.com/auth/presentations.readonly']
 presentation_id=''
+
 
 def signup(request):
     if request.user.is_authenticated:
@@ -175,15 +178,6 @@ def prompt(request):
         dir_name = filename
         os.makedirs(dir_name, exist_ok=True)  # 이미 있어도 에러 안 냄
         SLIDE_TITLE_TEXT = dir_name
-
-        # idx = random.randint(0, 100)  // gpt가 변경한 하기 전 코드 부분 
-
-        # try:
-        #     os.makedirs(f"{filename}")
-        #     SLIDE_TITLE_TEXT = filename
-        # except:
-        #     os.makedirs(f"{filename}_{idx}")
-        #     SLIDE_TITLE_TEXT = f"{filename}_{idx}"
 
         ppt_text = create_ppt_text(filename)
 
@@ -364,30 +358,10 @@ def get_textlist_from_txt():
 
 def create_slides(original_file_id, SLIDE_TITLE_TEXT):
     global presentation_id
-    creds = None
+    creds = get_google_creds()
     SCOPES = ['https://www.googleapis.com/auth/presentations', 'https://www.googleapis.com/auth/drive']
 
-    # token.json 파일이 존재하지 않거나, 비어있는 경우 새로 인증 받기
-    if os.path.exists('token.json'):
-        try:
-            with open('token.json', 'rb') as token:
-                creds = pickle.load(token)
-        except EOFError:  # EOFError가 발생할 경우, 인증 파일이 비어있으므로 다시 인증 받기
-            creds = None
-
-    # 인증이 없거나 유효하지 않은 경우, 새로 인증 받기
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'client_secret.json', scopes=SCOPES)
-            creds = flow.run_local_server(port=0)
-
-        # 인증된 credentials 저장
-        with open('token.json', 'wb') as token:
-            pickle.dump(creds, token)
-
+    
     service = build('slides', 'v1', credentials=creds)
     drive_service = build('drive', 'v3', credentials=creds)
 
@@ -410,144 +384,158 @@ def create_slides(original_file_id, SLIDE_TITLE_TEXT):
         with open(file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)  # JSON을 딕셔너리 형태로 로드
 
+        # 텍스트 파일에서 슬라이드용 텍스트 읽기
         text_list = get_textlist_from_txt()
-
-
-
-
-
-        new_txt_list=text_list
-        new_txt_list.insert(4, text_list[0])
-        new_txt_list.insert(5, '1')
-        new_txt_list.insert(12, text_list[0])
-        new_txt_list.insert(13, '2')
 
         requests_update = []
         object_index = []
 
-        # template 1
-        if original_file_id == '19OAsGTO9QKHR-GQ-Fw_uc1JrYuC8NC58pj711l2ByD4':
-            text_list=new_txt_list
+        # 템플릿별로 어떤 텍스트 박스에 내용을 넣을지 결정
+        # 기본값: 텍스트 파일에서 읽어온 순서를 그대로 사용
+        text_list_for_mapping = list(text_list)
 
-
-            for slide in presentation.get('slides', []):
-                elements = slide.get('pageElements', [])
-                # slide_id = slide.get('objectId')
-                # print(f"Slide ID: {slide_id}:{len(elements)}")
-
-                if len(elements) < 4:
-                    for element in elements[:2]:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
-
-                        
-                elif len(elements) == 5:
-                    for element in elements[:2]:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
-
-                        
-
-
-                else:
-                    for element in elements[2:4]:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
-                        
+        # template 1 (새 템플릿 ID)
+        # 이 템플릿에서는 모든 텍스트 박스에 순서대로 채웁니다.
+        if original_file_id == "1BD_IbF8x62MsUNlFGbWSmt4v7rpMR5us8BxIwmvMZ9I":
+            pass
         # template 2
-        elif original_file_id == '1LAsaHc6o9uzZPl0zsDfhRlt9oNWhmBEbp1vLYOU17tk':
-            text_list.insert(4, text_list[0])
-            text_list.insert(5, '1')
-            text_list.insert(12, text_list[0])
-            text_list.insert(13, '2')
+        elif original_file_id == "1LAsaHc6o9uzZPl0zsDfhRlt9oNWhmBEbp1vLYOU17tk":
+            text_list_for_mapping = list(text_list_for_mapping)
+            text_list_for_mapping.insert(4, text_list_for_mapping[0])
+            text_list_for_mapping.insert(5, "1")
+            text_list_for_mapping.insert(12, text_list_for_mapping[0])
+            text_list_for_mapping.insert(13, "2")
 
-            for slide in presentation.get('slides', []):
-                elements = slide.get('pageElements', [])
-                slide_id = slide.get('objectId')
-
+            for slide in presentation.get("slides", []):
+                elements = slide.get("pageElements", [])
                 for element in elements[:2]:
-                    element_id = element.get('objectId')
-                    object_index.append(element_id)
-
+                    object_index.append(element.get("objectId"))
 
         # template 3
-        elif original_file_id == '1QTy_L8GU-fDZV5jE9ZO5aEuW2l1eDcFa6NH5BOYR8Ak':
-            text_list.insert(4, text_list[0])
-            text_list.insert(5, '1')
-            text_list.insert(12, text_list[0])
-            text_list.insert(13, '2')
+        elif original_file_id == "1QTy_L8GU-fDZV5jE9ZO5aEuW2l1eDcFa6NH5BOYR8Ak":
+            text_list_for_mapping = list(text_list_for_mapping)
+            text_list_for_mapping.insert(4, text_list_for_mapping[0])
+            text_list_for_mapping.insert(5, "1")
+            text_list_for_mapping.insert(12, text_list_for_mapping[0])
+            text_list_for_mapping.insert(13, "2")
 
-            for slide in presentation.get('slides', []):
-                elements = slide.get('pageElements', [])
-                slide_id = slide.get('objectId')
-
+            for slide in presentation.get("slides", []):
+                elements = slide.get("pageElements", [])
                 if len(elements) == 3:
-                    for element in elements[:2]:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
-
+                    targets = elements[:2]
                 else:
-                    for element in elements:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
+                    targets = elements
 
-
-
-
-
+                for element in targets:
+                    object_index.append(element.get("objectId"))
 
         # template 4
-        elif original_file_id == '1Mohc1dhmGKbE1NALs8QRRftFK8wnJMJ-CUOMpv36Z50':
+        elif original_file_id == "1Mohc1dhmGKbE1NALs8QRRftFK8wnJMJ-CUOMpv36Z50":
+            text_list_for_mapping = text_list
 
-            for slide in presentation.get('slides', []):
-                elements = slide.get('pageElements', [])
-                slide_id = slide.get('objectId')
-                if slide_id == 'p2' or slide_id == 'p6' or slide_id == 'p9':
-                    for element in elements[1:]:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
-
+            for slide in presentation.get("slides", []):
+                elements = slide.get("pageElements", [])
+                slide_id = slide.get("objectId")
+                if slide_id in ("p2", "p6", "p9"):
+                    targets = elements[1:]
                 else:
-                    for element in elements[:2]:
-                        element_id = element.get('objectId')
-                        object_index.append(element_id)
+                    targets = elements[:2]
 
-      
+                for element in targets:
+                    object_index.append(element.get("objectId"))
 
-        try:
-            mapped_data = dict(zip(object_index, text_list))
-        except:
-            pass
+        # 1) 모든 텍스트 박스 내용 초기화 (템플릿에 남아 있는 예제 텍스트 제거)
+        all_text_boxes = []
+        for slide in presentation.get("slides", []):
+            for element in slide.get("pageElements", []):
+                shape = element.get("shape")
+                if not shape:
+                    continue
+                text = shape.get("text", {})
+                text_elements = text.get("textElements", [])
+                if any("textRun" in te for te in text_elements):
+                    all_text_boxes.append(element["objectId"])
 
+        for obj_id in all_text_boxes:
+            requests_update.append({
+                "deleteText": {
+                    "objectId": obj_id,
+                    "textRange": {"type": "ALL"}
+                }
+            })
 
-        for slide in data["slides"]:
-            for element in slide.get("pageElements", []):  # 각 슬라이드의 요소들 순회
-                obj_id = element.get("objectId")  # objectId 가져오기
+        # 2) 템플릿 정보가 있는 경우: object_index 기반으로 매핑
+        if object_index:
+            try:
+                mapped_data = dict(zip(object_index, text_list_for_mapping))
+            except Exception:
+                mapped_data = {}
 
-                if obj_id in mapped_data:
-                    text_elements = element.get("shape", {}).get("text", {}).get("textElements", [])
-                    for text_element in text_elements:
-                        if "textRun" in text_element:  # textRun이 존재하는 경우
+            for slide in presentation.get("slides", []):
+                for element in slide.get("pageElements", []):
+                    obj_id = element.get("objectId")
+                    if obj_id not in mapped_data:
+                        continue
 
-                            text_element["textRun"]["content"] = mapped_data[obj_id] + "\n"  # 텍스트 변경
+                    # 실제로 텍스트를 가진 shape 인지 다시 한 번 체크
+                    shape = element.get("shape")
+                    if not shape:
+                        continue
+                    text = shape.get("text", {})
+                    text_elements = text.get("textElements", [])
+                    has_text_run = any("textRun" in te for te in text_elements)
+                    if not has_text_run:
+                        # 그림/도형 등 텍스트가 없는 요소는 건너뜀
+                        continue
 
-                            requests_update.append({
-                                "deleteText": {
-                                    "objectId": obj_id,
-                                    "textRange": {
-                                        "type": "ALL"  # 텍스트 전체 삭제
-                                    }
-                                }
-                            })
-                            requests_update.append({
-                                "insertText": {
-                                    "objectId": obj_id,
-                                    "text": mapped_data[obj_id]  # 새로 설정된 텍스트
-                                }
-                            })
+                    content = mapped_data[obj_id] or ""
 
-                            break
+                    # 줄바꿈은 유지하되, 탭/불필요한 공백 정리
+                    content = content.replace("\r\n", "\n").replace("\r", "\n")
+                    content = content.replace("\t", " ")
+                    lines = [
+                        re.sub(r"[ ]+", " ", line).strip()
+                        for line in content.split("\n")
+                    ]
+                    cleaned = "\n".join(lines).strip()
 
+                    # 기존 텍스트는 위에서 한 번 모두 삭제했으므로
+                    # 여기서는 새 텍스트만 삽입
+                    requests_update.append({
+                        "insertText": {
+                            "objectId": obj_id,
+                            "text": cleaned
+                        }
+                    })
+        else:
+            # 3) 템플릿 정보가 없는 경우: 모든 텍스트 박스에 순서대로 채워 넣기
+            for obj_id, content in zip(all_text_boxes, text_list_for_mapping):
+                content = content or ""
+                content = content.replace("\r\n", "\n").replace("\r", "\n")
+                content = content.replace("\t", " ")
+                lines = [
+                    re.sub(r"[ ]+", " ", line).strip()
+                    for line in content.split("\n")
+                ]
+                cleaned = "\n".join(lines).strip()
+
+                requests_update.append({
+                    "insertText": {
+                        "objectId": obj_id,
+                        "text": cleaned
+                    }
+                })
+
+        print(
+            "DEBUG:",
+            len(text_list_for_mapping),
+            "texts,",
+            len(object_index),
+            "mapped_boxes,",
+            len(requests_update),
+            "requests",
+        )
+        # 3) 프레젠테이션 업데이트 요청 준비 완료
         permission = {
             "type": "anyone",  # 모든 사용자
             "role": "reader",  # 읽기 권한 (viewer)
@@ -556,16 +544,13 @@ def create_slides(original_file_id, SLIDE_TITLE_TEXT):
       
 
         slides_service = build('slides', 'v1', credentials=creds)
-
+      
         if requests_update:
-            # requests_update에 내용이 있을 때만 batchUpdate 호출
-            print("✅ requests_update 개수:", len(requests_update))
             slides_service.presentations().batchUpdate(
                 presentationId=presentation_id,
                 body={'requests': requests_update}
             ).execute()
         else:
-            # 지금 상황: 여기로 와서 400이 났던 것
             print("⚠️ requests_update가 비어 있어서 batchUpdate를 건너뜁니다.")
 
         # 공개 링크 권한 부여
@@ -584,17 +569,6 @@ def create_slides(original_file_id, SLIDE_TITLE_TEXT):
 
 ############################################################################
 
-# @login_required(login_url='/login/')
-# def result_tap(request):
-#     global presentation_id
-#     # GET 요청에서 presentation_id 가져오기
-#
-#     # # presentation_id가 없는 경우 처리
-#     # if not presentation_id:
-#     #     return redirect("result")
-#
-#     # 템플릿으로 전달
-#     return render(request, "blog/result_tap.html", {"presentation_id": presentation_id})
 
 @login_required
 def profile(request):
@@ -654,30 +628,14 @@ def get_slide_thumbnail(presentation_id, slide_index=0):
     ).execute()
     return thumbnail.get('contentUrl')
 
-# def router(request):
-#     return redirect('download_slide')
-
 # 뷰에서 슬라이드 썸네일을 HTML로 렌더링
 def display_slides(request):
     # 프레젠테이션 ID 목록
     global presentation_id
-    # presentation_ids = [
-    #     '1Kh5ol8ogtFhA8c1GZysm4rVxhU68pjgJA_PqVCz453Q',  # 예시 프레젠테이션 ID
-    # ]
-
-    # 각 프레젠테이션의 첫 번째 슬라이드 썸네일 URL을 가져옴
-    # first_slide_images = []
-    # for presentation_id in presentation_ids:
-    #     first_slide_image_url = get_slide_thumbnail(presentation_id)
-    #     if first_slide_image_url:
-    #         first_slide_images.append(first_slide_image_url)
-
     slides=get_slides_list()
  
     # HTML 템플릿에 데이터를 전달
     return render(request, 'blog/result_tap.html', {'slides': slides, 'presentation_id': presentation_id})
-
-# slides_list
 
 # 로깅 설정
 logger = logging.getLogger(__name__)
@@ -685,57 +643,101 @@ logger = logging.getLogger(__name__)
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/presentations.readonly']
 SERVICE_ACCOUNT_FILE = 'credentials.json'  # 서비스 계정 JSON 파일
 
+def get_google_creds(scopes=None):
+    """token.json + client_secret.json 기반으로 자격 증명 가져오기"""
+    if scopes is None:
+        scopes = SCOPES
+
+    creds = None
+
+    # 1) token.json 에서 기존 자격 증명 읽기
+    if os.path.exists("token.json"):
+        with open("token.json", "rb") as token:
+            creds = pickle.load(token)
+
+    # 2) 없거나 만료되었으면 새로 로그인
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "client_secret.json",
+                scopes,
+            )
+            creds = flow.run_local_server(port=0)
+
+        # 3) 갱신된 자격 증명 저장
+        with open("token.json", "wb") as token:
+            pickle.dump(creds, token)
+
+    return creds
+
 def get_slides_list():
-    global SCOPES
+    # global SCOPES
     global presentation_id
+    creds = get_google_creds()
+    # 1) token.json에서 자격 증명 로드
+    # if os.path.exists('token.json'):
+    #     with open('token.json', 'rb') as token:
+    #         creds = pickle.load(token)
+
+    # # 2) 없거나 만료되면 새로 로그인
+    # if not creds or not creds.valid:
+    #     if creds and creds.expired and creds.refresh_token:
+    #         creds.refresh(Request())
+    #     else:
+    #         flow = InstalledAppFlow.from_client_secrets_file(
+    #             'client_secret.json', SCOPES
+    #         )
+    #         creds = flow.run_local_server(port=0)
+
+    #     with open('token.json', 'wb') as token:
+    #         pickle.dump(creds, token)
+
+            
     """Google Drive에서 사용자의 슬라이드 목록 가져오기"""
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
-    drive_service = build('drive', 'v3', credentials=creds)
+    # creds = service_account.Credentials.from_service_account_file(
+    #     SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    # )
+
+    # drive_service = build('drive', 'v3', credentials=creds)
     slides_service = build('slides', 'v1', credentials=creds)
 
-    # # Google Slides 목록 가져오기
-    # results = drive_service.files().list(
-    #     q="mimeType='application/vnd.google-apps.presentation'",
-    #     fields="files(id, name)"
-    # ).execute()
-    #
-    # slides = results.get('files', [])
-    presentation = slides_service.presentations().get(presentationId=presentation_id).execute()
+    # 프레젠테이션 정보 가져오기
+    # presentation = slides_service.presentations().get(presentationId=presentation_id).execute()
+    # slides = presentation.get('slides', [])
+    presentation = slides_service.presentations().get(
+        presentationId=presentation_id
+    ).execute()
     slides = presentation.get('slides', [])
 
     # 첫 5개의 슬라이드만 선택
+    # thumbnails = []
+    # for index, slide in enumerate(slides[:5]):
+    #     slide_id = slide.get('objectId')
+
+    #     # 슬라이드 썸네일 가져오기
+    #     thumbnail_response = slides_service.presentations().pages().getThumbnail(
+    #         presentationId=presentation_id,
+    #         pageObjectId=slide_id
+    #     ).execute()
+
+    #     thumbnails.append(thumbnail_response.get('contentUrl'))
+
+    # return thumbnails
     thumbnails = []
     for index, slide in enumerate(slides[:5]):
         slide_id = slide.get('objectId')
 
-        # 슬라이드 썸네일 가져오기
         thumbnail_response = slides_service.presentations().pages().getThumbnail(
             presentationId=presentation_id,
             pageObjectId=slide_id
         ).execute()
 
         thumbnails.append(thumbnail_response.get('contentUrl'))
-    # print(f"get_slides_list: {thumbnails}")
 
     return thumbnails
-    # return slides  # {id, name} 리스트 반환
 
-# def get_slide_thumbnail(presentation_id):
-#     """Google Slides에서 썸네일 가져오기"""
-#     creds = service_account.Credentials.from_service_account_file(
-#         SERVICE_ACCOUNT_FILE, scopes=SCOPES
-#     )
-#     drive_service = build('drive', 'v3', credentials=creds)
-#
-#     try:
-#         # Google Drive API에서 파일 정보 가져오기 (썸네일 링크 포함)
-#         file = drive_service.files().get(fileId=presentation_id, fields="thumbnailLink").execute()
-#         return file.get('thumbnailLink')
-#     except Exception as e:
-#         logger.error(f"Error getting thumbnail for presentation {presentation_id}: {str(e)}")
-#         return None
 
 def get_slide_image(slides_service, presentation_id, page_id):
     """
@@ -792,23 +794,25 @@ def get_slide_images(presentation_id, max_slides=4):
 
 def download_pptx(presentation_id):
     """Google Slides 프레젠테이션을 PPTX 형식으로 다운로드"""
+
     try:
-        # 인증 설정
-        creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES
-        )
+        # 1) OAuth 자격 증명 가져오기 (token.json 기반)
+        creds = get_google_creds()
+
         drive_service = build("drive", "v3", credentials=creds)
 
-        # 프레젠테이션 정보 가져오기 (파일명 확인)
-        file_metadata = drive_service.files().get(fileId=presentation_id, fields="name").execute()
+        # 2) 프레젠테이션 이름 가져오기
+        file_metadata = drive_service.files().get(
+            fileId=presentation_id,
+            fields="name",
+        ).execute()
         presentation_name = file_metadata.get("name", "presentation")
 
-        # 파일을 PPTX로 다운로드
+        # 3) PPTX로 export
         google_request = drive_service.files().export_media(
             fileId=presentation_id,
-            mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         )
-
         # 다운로드 진행
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, google_request)
@@ -816,23 +820,65 @@ def download_pptx(presentation_id):
         while not done:
             status, done = downloader.next_chunk()
 
-        fh.seek(0)  # 파일 포인터를 처음으로 이동
+        fh.seek(0)  # 파일 포인터 앞으로
 
-        with open(f"{presentation_name}.pptx", "wb") as f:
-            f.write(fh.read())
-
-        # Django 환경이면 HttpResponse 반환
-        if HttpResponse:
-            response = HttpResponse(
-                fh, content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            )
-            response["Content-Disposition"] = f'attachment; filename="{presentation_name}.pptx"'
-           
-            return response
-
+        # 4) Django로 파일 전송
+        response = HttpResponse(
+            fh.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        )
+        # 파일 이름 한글이면 인코딩 한 번 더 신경 써야 하지만 일단 기본 버전:
+        response["Content-Disposition"] = f'attachment; filename="{presentation_name}.pptx"'
+        
+        return response
     except Exception as e:
-        logger.error(f"Error downloading PPTX for presentation {presentation_id}: {str(e)}")
-        raise
+        logger.error(
+            f"Error downloading PPTX for presentation {presentation_id}: {str(e)}"
+        )
+        # 프론트에 에러 메시지 간단히 반환
+        return HttpResponse("PPTX 다운로드 중 오류가 발생했습니다.", status=500)
+
+    # try:
+    #     # 인증 설정
+    #     creds = service_account.Credentials.from_service_account_file(
+    #         SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    #     )
+    #     drive_service = build("drive", "v3", credentials=creds)
+
+    #     # 프레젠테이션 정보 가져오기 (파일명 확인)
+    #     file_metadata = drive_service.files().get(fileId=presentation_id, fields="name").execute()
+    #     presentation_name = file_metadata.get("name", "presentation")
+
+    #     # 파일을 PPTX로 다운로드
+    #     google_request = drive_service.files().export_media(
+    #         fileId=presentation_id,
+    #         mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    #     )
+
+    #     # 다운로드 진행
+    #     fh = io.BytesIO()
+    #     downloader = MediaIoBaseDownload(fh, google_request)
+    #     done = False
+    #     while not done:
+    #         status, done = downloader.next_chunk()
+
+    #     fh.seek(0)  # 파일 포인터를 처음으로 이동
+
+    #     with open(f"{presentation_name}.pptx", "wb") as f:
+    #         f.write(fh.read())
+
+    #     # Django 환경이면 HttpResponse 반환
+    #     if HttpResponse:
+    #         response = HttpResponse(
+    #             fh, content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    #         )
+    #         response["Content-Disposition"] = f'attachment; filename="{presentation_name}.pptx"'
+           
+    #         return response
+
+    # except Exception as e:
+    #     logger.error(f"Error downloading PPTX for presentation {presentation_id}: {str(e)}")
+    #     raise
 
 
 
