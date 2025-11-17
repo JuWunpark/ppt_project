@@ -20,6 +20,7 @@ from .models import UserHistory
 from django.conf import settings
 import openai
 import re
+from collections import OrderedDict
 
 
 
@@ -175,9 +176,26 @@ def prompt(request):
 
         filename = filename_response.choices[0].message.content.strip().replace(" ", "_")
         # gpt가 변경한 코드 
-        dir_name = filename
-        os.makedirs(dir_name, exist_ok=True)  # 이미 있어도 에러 안 냄
-        SLIDE_TITLE_TEXT = dir_name
+        # dir_name = filename
+        # os.makedirs(dir_name, exist_ok=True)  # 이미 있어도 에러 안 냄
+        # SLIDE_TITLE_TEXT = dir_name
+
+        raw_title = filename_response.choices[0].message.content.strip()
+
+        # 공백 → '_' 로 바꾸고, 기존에 이상한 확장자가 붙어 있으면 제거
+        base_name = raw_title.replace(" ", "_")
+        base_name = os.path.splitext(base_name)[0]      # '...발표1.docx' -> '...발표1'
+
+        # 1) 폴더 이름(확장자 없음) : txt 파일들이 들어갈 디렉터리
+        dir_name = base_name
+
+        # 2) PPT 제목(확장자 .ppt) : 구글 슬라이드 파일명으로 쓸 문자열
+        ppt_title = base_name + ".ppt"
+
+        # 전역 변수에 반영
+        filename = dir_name               # 나머지 코드에서 파일/폴더 경로용으로 쓰는 이름
+        os.makedirs(dir_name, exist_ok=True)
+        SLIDE_TITLE_TEXT = ppt_title      # create_slides() 에서 슬라이드 이름으로 사용
 
         ppt_text = create_ppt_text(filename)
 
@@ -203,6 +221,7 @@ def prompt(request):
 # -- 프롬프트 --#######################################################################################
 
 def create_ppt_text(topic):
+    
     prompt = f"""
         Write a PowerPoint presentation about "{topic}". Follow these rules strictly:
 
@@ -221,21 +240,14 @@ def create_ppt_text(topic):
         #Header: 목차
         #Content: 
         1. [목차 제목 1]
-        2. [목차 제목 2]
-        3. [목차 제목 3]
-        4. [목차 제목 4]
-        5. [목차 제목 5]
-        6. [목차 제목 6]
-
-        Answer ONLY in this format, without any additional text.
+        ...
         """
     response = client.chat.completions.create(
-        model="gpt-4-turbo",  # 여기에 맞춰 모델 설정
-        messages=[{"role": "system", "content": prompt}],
+        model="gpt-4-turbo",
+        messages=[{"role": "user", "content": prompt}],
         temperature=0.8,
         max_tokens=4096,
     )
-
     return response.choices[0].message.content.strip()
 
 def create_ppt_detail_text():
@@ -289,34 +301,56 @@ def create_ppt_detail_text():
 
 
 
-def split_slides(content, index):
-    global SLIDE_TITLE_TEXT
-    """#Slide: 기준으로 슬라이드를 나누는 함수"""
-    slides = content.split("#Slide:")
-    # filepath = os.path.join("Cache", filename)
+def split_slides(ppt_text: str, index: int = 0):
+    """
+    ppt_text : create_ppt_text / create_ppt_detail_text 에서 받은 전체 문자열
+    index    : 0이면 '요약 버전' 첫 패스, 0이 아니면 같은 파일에 디테일을 덧붙이는 패스
+    """
 
-    output_dir = f"{SLIDE_TITLE_TEXT}"
+    global SLIDE_TITLE_TEXT    # 예: '경제학자_엥겔스_과제_발표_1.ppt'
+    base_dir = SLIDE_TITLE_TEXT
 
-    for i in range(1, len(slides)):
-        header = slides[i].split(":")
+    # 폴더가 없으면 항상 먼저 만든다
+    os.makedirs(base_dir, exist_ok=True)
 
-        head = header[1].split("#Content")[0].strip()  # 'Table of Contents'
-        content = header[2].strip()
-        # print(head)
-        # print(content)
-        sanitized_head = sanitize_filename(head)
+    # '#Slide:' 기준으로 블록 분리
+    # (맨 앞에 오는 #Title: 블록까지 포함해서 싹 자름)
+    blocks = re.split(r'\n(?=#Slide:)', ppt_text.strip())
+    slide_no = index
 
-        file_path = os.path.join(output_dir, f"{index}_{sanitized_head}.txt")
+    for block in blocks:
+        # 슬라이드 번호 자체는 굳이 안 써도 되지만, 필요하면 여기서 읽을 수 있음
+        # slide_match = re.search(r'#Slide:\s*(\d+)', block)
 
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        header_match = re.search(r'#Header:\s*(.+)', block)
+        content_match = re.search(r'#Content:\s*((?:.|\n)+)', block)
 
-        index += 1
+        if not header_match or not content_match:
+            # 형식 안 맞으면 그냥 건너뜀
+            continue
 
-    # time.sleep(1)
+        raw_header = header_match.group(1).strip()
+        content = content_match.group(1).strip()
 
-    # ppt_link=get_license_data(filename)
-    # return ppt_link
+        # 파일 이름에 쓸 수 있게 헤더를 안전하게 정제
+        safe_header = re.sub(r'[\\/:*?"<>|]', "_", raw_header)
+
+        # 파일 경로: "{폴더}/{슬라이드번호}_{헤더}.txt"
+        file_path = os.path.join(base_dir, f"{slide_no}_{safe_header}.txt")
+
+        # index == 0이면 새 파일을 만들고, 그 이상이면 기존 파일에 내용을 붙인다
+        mode = "w" if index == 0 else "a"
+
+        with open(file_path, mode, encoding="utf-8") as f:
+            if index == 0:
+                # 첫 패스: 헤더에 슬라이드 번호 prefix 붙여서 한 줄 쓰고, 내용도 같이 씀
+                f.write(f"{slide_no}_{raw_header}\n")
+                f.write(content + "\n")
+            else:
+                # 두 번째 이후 패스: 빈 줄 하나 비우고 디테일만 추가
+                f.write("\n" + content + "\n")
+
+        slide_no += 1
 
 def sanitize_filename(name):
     name = re.sub(r'[\\/*?:"<>|]', "", name)
@@ -356,6 +390,45 @@ def get_textlist_from_txt():
     
     return text_list
 
+
+
+from collections import defaultdict
+
+def group_and_sort_by_prefix(text_list: list[str]) -> list[str]:
+    """
+    text_list 안의 각 줄이 '0_제목...', '1_내용...' 처럼
+    숫자 prefix를 가지고 있다고 가정하고,
+    슬라이드 번호 순서대로 (0,1,2,3,...) 정렬해서
+    각 슬라이드당 최대 2줄(제목/내용)만 돌려준다.
+    번호가 없는 줄(예: '목차...')은 직전 번호 슬라이드에 붙인다.
+    """
+
+    grouped: dict[int, list[str]] = defaultdict(list)
+    current_idx: int | None = None
+
+    for line in text_list:
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        m = re.match(r"^(\d+)_", stripped)
+        if m:
+            # 새 슬라이드 번호
+            current_idx = int(m.group(1))
+            grouped[current_idx].append(stripped)
+        else:
+            # 번호가 없으면 직전 슬라이드에 내용으로 붙인다
+            if current_idx is not None:
+                grouped[current_idx].append(stripped)
+            # current_idx 가 아직 None이면(파일 첫 줄이 번호 없이 시작했다면) 그냥 무시
+
+    # 번호 순서대로 정렬해서, 각 슬라이드당 최대 2줄(제목+내용)만 사용
+    sorted_result: list[str] = []
+    for idx in sorted(grouped.keys()):
+        sorted_result.extend(grouped[idx][:2])
+
+    return sorted_result
+
 def create_slides(original_file_id, SLIDE_TITLE_TEXT):
     global presentation_id
     creds = get_google_creds()
@@ -386,30 +459,68 @@ def create_slides(original_file_id, SLIDE_TITLE_TEXT):
 
         # 텍스트 파일에서 슬라이드용 텍스트 읽기
         text_list = get_textlist_from_txt()
-
+        sorted_text_list = group_and_sort_by_prefix(text_list)
+       
+        
         requests_update = []
         object_index = []
 
         # 템플릿별로 어떤 텍스트 박스에 내용을 넣을지 결정
         # 기본값: 텍스트 파일에서 읽어온 순서를 그대로 사용
-        text_list_for_mapping = list(text_list)
+        text_list_for_mapping = list(sorted_text_list)
+        # text_list_for_mapping = normalize_text_order(text_list)
 
         # template 1 (새 템플릿 ID)
         # 이 템플릿에서는 모든 텍스트 박스에 순서대로 채웁니다.
         if original_file_id == "1BD_IbF8x62MsUNlFGbWSmt4v7rpMR5us8BxIwmvMZ9I":
-            pass
-        # template 2
-        elif original_file_id == "1LAsaHc6o9uzZPl0zsDfhRlt9oNWhmBEbp1vLYOU17tk":
-            text_list_for_mapping = list(text_list_for_mapping)
-            text_list_for_mapping.insert(4, text_list_for_mapping[0])
-            text_list_for_mapping.insert(5, "1")
-            text_list_for_mapping.insert(12, text_list_for_mapping[0])
-            text_list_for_mapping.insert(13, "2")
+            text_list_for_mapping = list(sorted_text_list)
+
 
             for slide in presentation.get("slides", []):
-                elements = slide.get("pageElements", [])
-                for element in elements[:2]:
-                    object_index.append(element.get("objectId"))
+                elements = slide.get('pageElements', [])
+
+        # TEXT_BOX만 선택
+                text_boxes = [
+                    e for e in elements
+                    if e.get("shape", {}).get("shapeType") == "TEXT_BOX"
+                ]
+
+        # 위치 기준으로 정렬 (위쪽이 먼저, 같은 높이면 왼쪽이 먼저)
+                def pos(e):
+                    t = e.get("transform", {})
+                    return (t.get("translateY", 0), t.get("translateX", 0))
+
+                text_boxes.sort(key=pos)
+
+        # 제목 / 내용 2개만 사용
+                for e in text_boxes[:2]:
+                    object_id = e["objectId"]
+                    object_index.append(object_id)
+
+            # 디버깅용 출력
+                    print(f"object_index append: slide={slide.get('objectId')}, obj={object_id}")
+
+     
+
+        # template 2
+        elif original_file_id == '1LAsaHc6o9uzZPl0zsDfhRlt9oNWhmBEbp1vLYOU17tk':
+                
+                text_list.insert(4, text_list[0])
+                text_list.insert(5, '1')
+                text_list.insert(12, text_list[0])
+                text_list.insert(13, '2')
+
+                for slide in presentation.get('slides', []):
+                    elements = slide.get('pageElements', [])
+                    slide_id = slide.get('objectId')
+                    print(f"Slide ID: {slide_id}:{len(elements)}")
+
+                    for element in elements[:2]:
+                        element_id = element.get('objectId')
+                        object_index.append(element_id)
+
+                        print(f"  - Element ID: {element_id}")
+                print(text_list)
 
         # template 3
         elif original_file_id == "1QTy_L8GU-fDZV5jE9ZO5aEuW2l1eDcFa6NH5BOYR8Ak":
@@ -443,6 +554,21 @@ def create_slides(original_file_id, SLIDE_TITLE_TEXT):
 
                 for element in targets:
                     object_index.append(element.get("objectId"))
+
+
+        num_pairs = min(len(object_index), len(text_list_for_mapping))
+        mapped_data = {
+            object_index[i]: text_list_for_mapping[i]
+            for i in range(num_pairs)
+        }
+        print("DEBUG: len(text_list_for_mapping) =", len(text_list_for_mapping))
+        print("DEBUG: len(object_index) =", len(object_index))
+        for i, oid in enumerate(object_index):
+            if i < len(text_list_for_mapping):
+                sample_txt = text_list_for_mapping[i]
+            else:
+                sample_txt = "<no text (not mapped)>"
+            print(f"  [{i}] object_id={oid}, text={sample_txt[:30]}...")
 
         # 1) 모든 텍스트 박스 내용 초기화 (템플릿에 남아 있는 예제 텍스트 제거)
         all_text_boxes = []
